@@ -1,3 +1,4 @@
+require('dotenv').config();
 require("./database/config");
 const mongoose = require("mongoose");
 const express = require("express");
@@ -9,7 +10,6 @@ const Checkout = require("./database/Models/CheckoutModel");
 const app = express();
 app.use(cors());
 app.use(express.json());
-const jwtSecret = "ruksJwtSecret";
 const cron = require("node-cron");
 
 //CRON--------------
@@ -34,7 +34,7 @@ const authenticateToken = async (req, resp, next) => {
     resp.status(401).json({ message: "Not authorized" });
   }
   try {
-    const decoded = JWT.verify(token, jwtSecret);
+    const decoded = JWT.verify(token, process.env.jwtSecret);
     req.user = await decoded.role;
     next();
   } catch (error) {
@@ -67,12 +67,12 @@ app.post("/library/signUp", async (req, resp) => {
     const saveUser = await newUser.save();
     const accessToken = JWT.sign(
       { name: saveUser.name, email: saveUser.email, role: saveUser.role },
-      jwtSecret,
+      process.env.jwtSecret,
       { expiresIn: "15m" }
     );
     const refreshToken = JWT.sign(
       { name: saveUser.name, email: saveUser.email, role: saveUser.role },
-      jwtSecret,
+      process.env.jwtSecret,
       { expiresIn: "3d" }
     );
     resp.status(200).json({ accessToken, refreshToken, role: saveUser.role });
@@ -95,14 +95,14 @@ app.post("/library/signIn", async (req, resp) => {
       if (matchPassword) {
         const accessToken = JWT.sign(
           { name: findUser.name, email: findUser.email, role: findUser.role },
-          jwtSecret,
+          process.env.jwtSecret,
           {
             expiresIn: "15m",
           }
         );
         const refreshToken = JWT.sign(
           { name: findUser.name, email: findUser.email, role: findUser.role },
-          jwtSecret,
+          process.env.jwtSecret,
           {
             expiresIn: "3d",
           }
